@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -8,24 +9,29 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 3 {
+	var comment, createdBy string
+	flag.StringVar(&comment, "comment", "", "Comment text")
+	flag.StringVar(&createdBy, "created", "", "CreatedBy text")
+	flag.Parse()
+
+	if len(flag.Args()) != 2 {
 		fmt.Fprintf(os.Stderr, "USAGE: %s TORRNET_FILE NEW_TORRENT_FILE", os.Args[0])
 		os.Exit(1)
 	}
 
-	m, err := metainfo.LoadFromFile(os.Args[1])
+	m, err := metainfo.LoadFromFile(flag.Arg(0))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to open file: %v", err)
 		os.Exit(1)
 	}
 
 	fmt.Printf("Orignal Info Hash: %s\r\n", m.HashInfoBytes().HexString())
-	m.Comment = ""
-	m.CreatedBy = ""
+	m.Comment = comment
+	m.CreatedBy = createdBy
 
 	fmt.Printf("After Info Hash: %s\r\n", m.HashInfoBytes().HexString())
 
-	f, err := os.OpenFile(os.Args[2], os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 644)
+	f, err := os.OpenFile(flag.Arg(1), os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 644)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to open file for writing: %v", err)
 		os.Exit(1)
